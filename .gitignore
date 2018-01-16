@@ -1,0 +1,9 @@
+.pdf
+.aux
+.fdb_latexmk
+.fls
+.log
+.out
+.syntex.gz
+.gz
+.csv

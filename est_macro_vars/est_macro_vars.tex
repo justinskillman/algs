@@ -1,0 +1,162 @@
+\documentclass[11pt]{article}
+\usepackage{forest}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{array}
+\usepackage{mathtools}
+\newcommand\pN{\mathcal{N}}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{algpseudocode}
+\usepackage{wrapfig}
+
+\algdef{SE}[SUBALG]{Indent}{EndIndent}{}{\algorithmicend\ }%
+\algtext*{Indent}
+\algtext*{EndIndent}
+
+
+
+\titleformat{\subsection}{\normalfont\large\center\it}{\thesubsection}{1em}{}
+
+%Formatting Problems Environment
+\newcounter{prob} %[section]
+\newenvironment{prob}[1][]{\refstepcounter{prob}\par\noindent\smallskip
+   \textbf{Problem~\thesection .\theprob. #1} \rmfamily}{\smallskip}
+
+\newenvironment{probb}[1][]{\refstepcounter{prob}\par\noindent\smallskip
+   \textbf{Problem~\thesection .\theprob.* #1} \rmfamily}{\smallskip}
+
+
+\begin{document}
+
+%%% Header %%%
+\begin{center}
+{\Large Estimating Macroeconomic Variables}
+\bigskip
+\end{center}
+
+\section{Introduction}
+\par
+This is a problem I wrote as a part of a training course I helped lead while at the Board.
+The model isn't all that useful in its own right but helps to teach some
+fundamental progamming skills. Save the resulting output from your solutions in a \textit{list}
+ object named \texttt{answers}. The data can be found in \texttt{data\_agg\_econ.csv}.
+
+\section{Problem} \label{macro}
+\begin{center}
+\begin{tabular}{l l c}
+\hline
+\textbf{Variable name} & \textbf{Description} & \textbf{Desired movement}\\
+\hline
+\texttt{gdp\_chng} & \% Change in gross domestic product (annual) & $\uparrow$ \\
+\texttt{exprt\_chng} & \% Change in net trade exports (annual) & $\uparrow$ \\
+\texttt{unemp\_chng} & \% Change in unemployment (annual) & $\downarrow$ \\
+\texttt{prices\_chng} & \% Change in consumer prices (annual) & $\uparrow$
+\end{tabular}
+\end{center}
+We are proposing a model that aims to predict whether GDP will increase or decrease in the next year given knowledge of how our other variables have moved in past years. The model we are working with looks like,
+\[
+\hat{G} = \gamma_1 T_{k_1} + \gamma_2 U_{k_2} + \gamma_3 P_{k_3}
+\]
+where $T$, $U$, and $P$ are scalar binary variables referring to the behavior of \texttt{exprt\_chng}, \texttt{unemp\_chng}, and \texttt{prices\_chng} respectively. We denote our independent variables as $\vec{X}=\{T, U, P\}$. $\hat{G}$ is our dependent variable, it is \textit{not} binary and can take any real value $[0,1]$. Our observed $G$ can only be zero or one depending on if GDP decreased or increased respectively. The index vector $\vec{k}=\{k_1,k_2,k_3\}$ represents the number of past years over which we will determine if a majority of the annual changes were desired changes in these variables. Majority defined as greater than half ($\frac{k_i}{2}$) of the observations. The vector $\vec{\gamma}=\{\gamma_1,\gamma_2,\gamma_3\}$ represents the weights we put on each variable, its elements can be any real value. As an example if the data showed \texttt{unemp\_chng= \{.05,-.01,.04,-.12\}} from 2013 through 2016 (we are at year-end of 2016), $U_{k_2}$ (where $k_2=3$) would be \textbf{1} because there were two decreases (which are desired for unemployment rates) out of the last three annual changes. $U_{k_2}$ (where $k_2=4$) however would be \textbf{0} because only two of the last four changes has been desired. $\hat{G}$ represents our prediction of the change in GDP, values closer to 1 indicate a stronger prediction of an increase. Please note that $\hat{G}$ must be between 0 and 1, which means that your model is subject to the constraint that the $\vec{X} \cdot \vec{\gamma} \in [0,1]$ ($\cdot$ is the dot product).
+\par
+The goal of the model and optimization is to predict if $G$ is 0 or 1 in the next year, representing a decrease or increase in GDP respectively. To do this we need to determine \textit{both} what the optimal $\gamma$'s and set of $k$'s are. Optimality is defined as giving the best predictions on a training set, where we minimize the difference between our predicted $\hat{G}$ and observed $G$. We will lead you through the beginning stages of reaching this goal but the final step requires completing the last problem which is not mandatory but is encouraged!
+\newline
+\begin{prob}
+Create a function to compute $T$, $U$, and $P$ for a given $\vec{k}$ and single year. For your answer assume $\vec{k}=\{8,4,6\}$ and use 2012 as your current year. This means that your results, \texttt{chngs\_846} which will be saved in \texttt{answers}, will be a vector of 1's and 0's of length three. Save the function in your code but you do not need to add it to the \texttt{answers} data.
+\end{prob}
+\begin{prob}
+Use \texttt{chngs\_846} as your $\vec{X}$ to compute a solution (there are multiple) for $\vec{\gamma}$ where each element is non-zero and $<$ 1. Your observed $G$ will correspond to GDP's change in 2013, as if you were trying to predict it only knowing data from 2012. To do this, minimize in the mean squared sense the difference between $\hat{G}$ and the observed data $G$. Create a function to find this $\vec{\gamma}$ as it will be used later. Save this vector as \texttt{weights\_given}, similarly this will be saved in \texttt{answers}. This minimization would look like,
+\[
+\min_{\vec{\gamma}} \frac{\sum_{i=1}^n(\hat{G} - G)^2}{n}.
+\]
+Please note that $n=1$ here as we are only working with one year's data. In later problems $n$ will be larger.
+\newline
+\textbf{HINT:} Modularize your function so that the function returning the mean squared difference is called within the optimization funtion. Use an optimization routine such as the \texttt{constrOptim} in the \texttt{stats} package. When using these you need to specify an initial ``guess", $\theta$, choose anywhere in the solution region. The constraint setup is written below, you will still need to translate it to R. $A$ is the constraint matrix, $x$ is what we are searching for, and $b$ is our constraint vector.
+\begin{align*}
+Ax &\geq b \\
+\begin{pmatrix}
+T & U & P \\
+-T & -U & -P
+\end{pmatrix}
+\begin{pmatrix}
+\gamma_1 \\
+\gamma_2 \\
+\gamma_3
+\end{pmatrix}
+&\geq
+\begin{pmatrix}
+0 \\
+-1
+\end{pmatrix}
+\end{align*}
+\end{prob}
+\begin{prob}
+Using $\vec{k}=\{8,4,6\}$ as above, compute your $\vec{X}=\{T, U, P\}$ for all periods in the data, with the exception of 2016 as we don't have a 2017 $G$ to test against. Remove any years for which not every element in $\vec{X}$ can be computed. Save this as a dataframe, of dimension $60\times3$, as \texttt{X\_mtx} in \texttt{answers}. For notational reasons we will refer to this matrix (set of $\vec{X}$'s) as $X_M$.
+\end{prob}
+\begin{prob}
+Compute $X_M$ dataframes for each of the five $\vec{k}$'s shown below, over the appropriate years for each $\vec{k}$. Determine which $\vec{k}$ leads to the best prediction of $G$ given a constant $\vec{\gamma}=\{\frac{1}{3},\frac{1}{3},\frac{1}{3} \}$, again by ``best" in the mean squared sense. This will be computed over all the rows of $X_M$ not just one, so $\hat{G}$ and $G$ will be vectors spanning the appropriate observation time. Save only the $\vec{k}$ that results in the best prediction as \texttt{k\_bestof5} in \texttt{answers}.
+\vspace{-1cm}
+\begin{center}
+\begin{align*}
+\vec{k}^A &= \{1,1,1\} \\
+\vec{k}^B &= \{2,2,3\} \\
+\vec{k}^C &= \{12,3,4\} \\
+\vec{k}^D &= \{5,7,9\} \\
+\vec{k}^E &= \{6,3,4\} \\
+\end{align*}
+\end{center}
+\vspace{-1cm}
+\end{prob}
+
+\begin{prob}
+In the previous problems you've found both an optimal $\vec{k}$ given an arbitrary $\vec{\gamma}$ and an optimal $\vec{\gamma}$ given an arbitrary $\vec{k}$. Now you will write function(s) to do both at once. Remember that the possibilities for $\vec{k}$ are finite, as they must be integers where none can be greater than the number of years we have in our data, this puts useful constraints on the solution. Use a package function such as the one suggested above to do your constrained optimization. As a starting point we have included a pseudo-code algorithm, see Algorithm \ref{alg:bonus}, that gives a hint as to a code structure you could use. This is an open ended question on purpose, we will reward hard work and creativity not simply having the correct solution.
+\newline
+\newline
+\textbf{COMMENT:} I thought it best to do a nested optimization function because the inequality constraints for the $\vec{\gamma}$ search depend on having an $X_M$ which cannot be created without already having a ``guess" for $\vec{k}$. If you can figure out a way to do the optimization at once, simultaneously finding $\vec{\gamma}$ and $\vec{k}$, I would be very interested to hear about it.
+\begin{algorithm}
+\caption{Algorithm}
+\label{alg:bonus}
+\begin{algorithmic}[1]
+ \Procedure{find $\vec{\gamma}$'s and $\vec{k}$'s}{}
+ \State Define inputs $G_{\text{obs}}$ and your initial guesses for  $\vec{k}_\theta$, $\vec{\gamma}_\theta$
+ \State \textbf{Enter} outside minimization routine to find optimal $\vec{k}$
+ \Indent
+   \State Subset $G_{\text{obs}}$ based on initial guess for $\vec{k}$
+   \State Compute constraint vector and matrix for $\vec{k}$ search
+   \Indent
+     \State \textbf{Optimize} over $\vec{k}$'s
+     \Indent
+       \State \textbf{Enter} inside minimization routine to find optimal $\vec{\gamma}$
+       \Indent
+         \State Subset $G_{\text{obs}}$ based on each iteration's choice for $\vec{k}$
+         \State Compute \texttt{X\_mtx} for current $\vec{k}$
+         \State Compute constraint vector and matrix for $\vec{\gamma}$ search
+         \State \textbf{Optimize} over $\vec{\gamma}$'s
+         \Indent
+           \State Objective function: $\min_{\vec{\gamma}} \frac{\sum_{i=1}^n(\hat{G} - G)^2}{n}$
+         \EndIndent
+         \State \textbf{Return} $\vec{\gamma}$*
+       \EndIndent
+       \State Objective function: $\min_{\vec{k}} \frac{\sum_{i=1}^n(\hat{G} - G)^2}{n}$
+     \EndIndent
+     \State \textbf{Return} $\vec{k}$*
+   \EndIndent
+ \EndIndent
+ \State \textbf{Return} $\vec{k}$*, $\vec{\gamma}$*
+ \State 	\textbf{Exit procedure}
+ \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\end{prob}
+\end{document}
