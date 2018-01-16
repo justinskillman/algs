@@ -1,0 +1,132 @@
+\documentclass[11pt]{article}
+\usepackage{forest}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{array}
+\usepackage{mathtools}
+\newcommand\pN{\mathcal{N}}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{algpseudocode}
+\usepackage{wrapfig}
+
+\algdef{SE}[SUBALG]{Indent}{EndIndent}{}{\algorithmicend\ }%
+\algtext*{Indent}
+\algtext*{EndIndent}
+
+
+
+\titleformat{\subsection}{\normalfont\large\center\it}{\thesubsection}{1em}{}
+
+%Formatting Problems Environment
+\newcounter{prob} %[section]
+\newenvironment{prob}[1][]{\refstepcounter{prob}\par\noindent\smallskip
+   \textbf{Problem~\thesection .\theprob. #1} \rmfamily}{\smallskip}
+
+\newenvironment{probb}[1][]{\refstepcounter{prob}\par\noindent\smallskip
+   \textbf{Problem~\thesection .\theprob.* #1} \rmfamily}{\smallskip}
+
+
+\begin{document}
+
+%%% Header %%%
+\begin{center}
+{\Large Word Search}
+\bigskip
+\end{center}
+
+\section{Introduction}
+\par
+This is a problem I wrote as a part of a training course I helped lead while at the Board.
+Save the resulting output from your solutions in a \textit{list}
+ object named \texttt{answers}. The data can be found in \texttt{testing\_data.Rdata}, you can generate your own data to test your
+ \texttt{lapply} statement in the final problem.
+
+\section{Word Search}
+In this next set of problems you will be tasked with creating a series of functions that work to find a given word in a matrix of characters. Your aggregate function, which will use the smaller functions we guide you through, should take in a matrix and the word you are searching for. It should output the starting location of the word and the direction it is spelled in. The word must be spelled vertically, horizontally, or diagonally. See the schematic below for an idea of what your aggregate function should do.
+\[
+\def\ba#1#2{a_{#1#2}}
+\def\r{\color{red}}
+\underbrace{ \bigg(
+\begin{bmatrix}
+B & P & H & F & S & X & Y \\
+\r{Y} & C & U & E & T & Z & F \\
+\r{E} & D & S & M & L & Y & J \\
+\r{L} & W & P & N & H & I & B \\
+\r{L} & F & J & V & A & H & D \\
+\r{E} & R & S & S & U & D & R \\
+\r{N} & W & E & V & P & L & E
+\end{bmatrix}
+,\text{(YELLEN)} \bigg) }_{\text{{\large inputs}}}
+\xrightarrow{\text{{\large function }}}
+\underbrace{\bigg( (2,1), \text{(down)} \bigg) }_{\text{{\large outputs}}}
+\]
+In light of the objective to create a function described above, keep all of your functions modular. They should have specific jobs with specific inputs and outputs. Sets of small, portable, and clear functions are better than a single complex and monolithic function. We have included in the assignment zip folder a matrix and word you can test your function with. In class we will choose some student's functions to work on a larger matrix searching for new words.
+\newline
+\begin{prob}
+Create a function that finds the position(s) of the first character in your search word, save it as \texttt{find\_firstchar} in \texttt{answers}. The inputs should be the matrix and the first character of the word. The output should be numeric coordinate pairs in (row,col) format. There will likely be more than one instance of your letter in the matrix. You will need to output all of them. For example, if you are working with the matrix and vector from above your function should return the coordinates: \texttt{(2,1), (1,7),} and \texttt{(3,6)}.
+\end{prob}
+\begin{prob}
+We are going to look character by character for the word, searching sequentially. Create a function that returns all possible positions that the next character in your search could be in given the location of the preceding character. This function should be called \texttt{make\_poss\_coords}, saved in \texttt{answers}, and should take as input your matrix and the location of the single preceding character. It should output a list off all possible coordinates for the next character. For example, for \texttt{(1,7)} your function should return all coordinates around it. These would be \texttt{(1,6), (2,6),} and \texttt{(2,7)}. Remember you \textit{do not} want to search backwards in the word or if you are on the edge of the matrix include any positions not in the matrix.
+\end{prob}
+\begin{prob}
+Create a function that determines which of the possible coordinates actually contains the next character in your word \textit{and} is in the correct direction. It should be called \texttt{eval\_coords}, saved in \texttt{answers}, and should output a subsetted version of the list from \texttt{make\_poss\_coords}. It should take as input the matrix, the set of coordinates output by \texttt{make\_poss\_coords}, the position of the previous two characters (so as to determine direction), and the next character. This function should be able to handle the case when the second previous character's position is \texttt{NA}, e.g. when we have only found the first character.
+\end{prob}
+\begin{prob}
+Create a function that determines in which direction two adjacent matrix elements are ordered. Your function should answer questions such as, is the second element left from the first one? Is the second element diagonally up-right from the first? etc.. The function should take as input two coordinate pairs and output a character string displaying the direction they are ordered in. For diagonal directions combine the directions in y-x order, e.g. up-right or down-left. Remember to include an error catch portion of your function that reports if the two elements are not in fact adjacent to each other in the matrix. Name and save this function as \texttt{det\_which\_dir} in \texttt{answers}.
+\end{prob}
+\begin{prob}
+Create your aggregate function, \texttt{word\_search}, saved in \texttt{answers}, that uses the functions from above (and more if necessary) to find all instances of a word in a matrix. Remember that during the middle of your search there may be more than one path of correct letters, you need to store these and continue to search along all of them. If one turns out to be incorrect, you should delete it. Functions in the \texttt{apply} family will be useful here, This function should take as input a matrix of characters and a search word. It should output the location(s) of the starting character(s) and the direction the word is spelled in. If a given word is not in your matrix, return a character string displaying to the user that this is the case. In the assignment's Rdata file we have included \texttt{word\_test} and \texttt{mtx\_test} to help you debug your code.
+\newline
+\textbf{HINT:} The most difficult part of this problem is dealing appropriately with the ``found'' pieces of your word as you go through your search. It is best to view this collection of possibly correct answers as a library of sorts. Each possible answer is an entry in this library and has attributes that will be needed throughout the search, e.g. all past correct coordinates or all possible coordinates of the next character. You may store this ``library" anyway you find useful, we found lists where each element pertains to a possible instance of the word in the matrix to be useful. The search process has portions that are dependent on previous iterations, such as when determining if a new letter is correct by using the direction of previous letters. This means \texttt{apply}-like statements cannot always be used, nonetheless they should be used where possible. We have written psuedo-code, see Algorithm  \ref{alg:word_search}, that provide an example of how you might structure your code. Feel free to write yours as similar or different from ours as you please.
+\begin{algorithm}[H]
+\caption{Word Search Algorithm}
+\label{alg:word_search}
+\begin{algorithmic}[1]
+ \Procedure{word\_search}{}
+ \State initialize \texttt{matrix} and \texttt{word}
+ \State split \texttt{word} into  vector of characters
+ \State \textbf{run} \texttt{find\_first\_char()} on \texttt{matrix} and \texttt{word}
+ \State create library of possible instances of the word (\# times first character was found)
+ \State store coordinates of first location(s) in library
+ \State \textbf{run} \texttt{make\_poss\_coords()} on location(s) of first character
+ \State store possible coordinates in library
+ \For{character \textbf{i} in second character : last character}
+   \State store next letter (\textbf{i+1}) needed in library
+   \State \textbf{run} \texttt{eval\_coords()} on each library entry's possible coordinates
+   \State Delete library entries where no possible coordinates exist
+   \If{no library entries exist}
+     \State \textbf{exit} procedure and report the word was not found
+   \EndIf
+   \State create new library entries for entries that found $>$1 possible coordinates
+   \State \textbf{run} \texttt{make\_poss\_coords()} on location(s) of character \textbf{i}
+   \State update library attributes (possible next coordinates, history of correct coordinates, etc.)
+ \EndFor
+ \If{library has entries (e.g. has found words)}
+   \For{found instance \textbf{i} in found instance 1 : found instance n}
+     \State \textbf{run} \texttt{det\_which\_dir()} on instance \textbf{i} (two characters of it)
+   \EndFor
+   \State format library for output, show starting location and direction
+ \Else
+   \State \textbf{exit} procedure and report the word was not found
+ \EndIf
+ \State \textbf{return} results
+ \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+\end{prob}
+
+\begin{prob}
+Write an \texttt{lapply} statement that can find the location (or lack thereof) of a set of words in a single matrix. We will test this in class. Wrap the \texttt{lapply} statement in a function and save it as \texttt{lword\_search} in \texttt{answers}.
+\end{prob}
+
+\end{document}
